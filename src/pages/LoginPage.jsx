@@ -111,6 +111,9 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
           <form onSubmit={handleCredentialLogin} className="w-full space-y-4 text-left">
             {/* Username Input */}
             <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Username
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                   <User className="w-4 h-4" />
@@ -135,6 +138,9 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
 
             {/* Password Input */}
             <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                Password
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                   <Lock className="w-4 h-4" />
