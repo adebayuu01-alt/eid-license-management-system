@@ -353,21 +353,19 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
               </div>
             </div>
 
-            {/* Status (show if editing) */}
-            {editingKey && (
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1.5">
-                  Status
-                </label>
-                <CustomDropdown
-                  value={formStatus}
-                  onChange={(val) => setFormStatus(val)}
-                  options={['Available', 'Activated', 'Duplicated']}
-                  placeholder="Select Status"
-                  buttonClassName="h-11 rounded-xl"
-                />
-              </div>
-            )}
+            {/* Status Dropdown */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-900 mb-1.5">
+                Status
+              </label>
+              <CustomDropdown
+                value={formStatus}
+                onChange={(val) => setFormStatus(val)}
+                options={['Available', 'Activated', 'Duplicated']}
+                placeholder="Select Status"
+                buttonClassName="h-11 rounded-xl"
+              />
+            </div>
 
             <div className="flex items-center justify-end gap-3 pt-3">
               <button
