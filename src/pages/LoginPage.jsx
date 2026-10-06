@@ -131,9 +131,6 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
                   }`}
                 />
               </div>
-              <p className="text-[10px] text-gray-400 mt-1">
-                We’ll never share your details. See our Privacy Policy.
-              </p>
             </div>
 
             {/* Password Input */}
@@ -170,9 +167,6 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
                   )}
                 </button>
               </div>
-              <p className="text-[10px] text-gray-400 mt-1">
-                We’ll never share your details. See our Privacy Policy.
-              </p>
             </div>
 
             {/* Error Message */}
