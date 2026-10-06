@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import SkeletonTable from '../components/SkeletonTable';
 import Toast from '../components/Toast';
-import CustomDropdown from '../components/CustomDropdown';
 import StatusBadge from '../components/StatusBadge';
 import AntDateRangePicker from '../components/AntDateRangePicker';
 import ModalPortal from '../components/ModalPortal';
@@ -27,7 +26,6 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
   // Add Modal
   const [showAddModal, setShowAddModal] = useState(false);
   const [formProductKey, setFormProductKey] = useState('');
-  const [formStatus, setFormStatus] = useState('Available');
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Delete State
@@ -73,7 +71,6 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
 
   const handleOpenAdd = () => {
     setFormProductKey('');
-    setFormStatus('Available');
     setIsGenerating(false);
     setShowAddModal(true);
   };
@@ -88,7 +85,7 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
     const newKey = {
       id: Date.now(),
       productKey: formProductKey.trim(),
-      status: formStatus,
+      status: 'Available',
       datetime: new Date().toLocaleDateString('en-GB') + ' 12:00'
     };
     onUpdateProductKeys([...productKeys, newKey]);
@@ -353,19 +350,7 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
               </div>
             </div>
 
-            {/* Status Dropdown */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-900 mb-1.5">
-                Status
-              </label>
-              <CustomDropdown
-                value={formStatus}
-                onChange={(val) => setFormStatus(val)}
-                options={['Available', 'Activated', 'Duplicated']}
-                placeholder="Select Status"
-                buttonClassName="h-11 rounded-xl"
-              />
-            </div>
+
 
             <div className="flex items-center justify-end gap-3 pt-3">
               <button
