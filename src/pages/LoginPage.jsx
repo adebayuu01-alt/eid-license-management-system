@@ -111,9 +111,6 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
           <form onSubmit={handleCredentialLogin} className="w-full space-y-4 text-left">
             {/* Username Input */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Username
-              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                   <User className="w-4 h-4" />
@@ -126,6 +123,7 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
                     if (isInvalid) setIsInvalid(false);
                   }}
                   placeholder="Input username"
+                  aria-label="Username"
                   className={`w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm transition-colors focus:outline-none ${
                     isInvalid
                       ? 'border-red-500 focus:border-red-500 bg-red-50/20'
@@ -140,9 +138,6 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
 
             {/* Password Input */}
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Password
-              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                   <Lock className="w-4 h-4" />
@@ -155,6 +150,7 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
                     if (isInvalid) setIsInvalid(false);
                   }}
                   placeholder="Input Password"
+                  aria-label="Password"
                   className={`w-full pl-10 pr-10 py-2.5 rounded-lg border text-sm transition-colors focus:outline-none ${
                     isInvalid
                       ? 'border-red-500 focus:border-red-500 bg-red-50/20'
@@ -165,6 +161,7 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none cursor-pointer"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -193,16 +190,6 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
             >
               LOG IN
             </button>
-
-            {/* Links matching Figma */}
-            <div className="flex items-center justify-between text-xs pt-1">
-              <span className="text-gray-500">
-                Dont have account? <a href="#create" onClick={(e) => e.preventDefault()} className="text-[#00A854] font-medium hover:underline">Create here</a>
-              </span>
-              <a href="#forgot" onClick={(e) => e.preventDefault()} className="text-gray-500 hover:text-gray-700 hover:underline">
-                Forget the password ?
-              </a>
-            </div>
           </form>
 
           {/* Quick Default Accounts */}
