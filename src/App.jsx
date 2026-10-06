@@ -41,7 +41,7 @@ export default function App() {
 
   // If not logged in, render LoginPage
   if (!currentUser) {
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+    return <LoginPage onLoginSuccess={handleLoginSuccess} users={users} />;
   }
 
   return (

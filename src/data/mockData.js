@@ -5,34 +5,10 @@
 export const INITIAL_USERS = [
   {
     id: 1,
-    name: 'Kevin Astemo',
-    username: 'kevin_astemo',
+    name: 'Ade Bayu',
+    username: 'adebayu.eid',
     role: 'Superadmin',
-    password: 'password123',
-    datetime: '06/09/2026 12:00'
-  },
-  {
-    id: 2,
-    name: 'Suep Astemo',
-    username: 'suep_astemo',
-    role: 'Admin',
-    password: 'password123',
-    datetime: '06/09/2026 12:00'
-  },
-  {
-    id: 3,
-    name: 'Admin EID',
-    username: 'admin_eid',
-    role: 'Superadmin',
-    password: 'password123',
-    datetime: '06/09/2026 12:00'
-  },
-  {
-    id: 4,
-    name: 'Operator EID',
-    username: 'operator_eid',
-    role: 'Admin',
-    password: 'password123',
+    password: 'adebayu12345',
     datetime: '06/09/2026 12:00'
   }
 ];

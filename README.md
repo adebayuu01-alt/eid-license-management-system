@@ -14,8 +14,7 @@ D:\ADE\KERJAAN\PT. Electrindo Inti Dinamika\UIUX PROJECT\ASTEMO - QUALITY DEVELO
 ### 1. Halaman Login
 * **Desain Presisi**: Mengikuti frame `Login` (1920x1080) dengan background aksen poligonal dan logo resmi Astemo.
 * **Akun Default**:
-  1. `kevin_astemo` / `kevin12345`
-  2. `suep_astemo` / `suep12345`
+  - `adebayu.eid` / `adebayu12345` (Superadmin)
 * **Validasi**: Border berubah menjadi merah disertai pesan error jika input kosong atau salah.
 * **State Berhasil**: Menampilkan toast hijau *"Success - Direct to Dashboard..."* lalu otomatis redirect ke halaman utama.
 

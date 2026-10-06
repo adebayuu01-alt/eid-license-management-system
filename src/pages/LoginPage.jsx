@@ -10,7 +10,7 @@ import eidLogo from '../assets/eid-logo.svg';
 import Toast from '../components/Toast';
 import { INITIAL_USERS } from '../data/mockData';
 
-export default function LoginPage({ onLoginSuccess }) {
+export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -33,24 +33,30 @@ export default function LoginPage({ onLoginSuccess }) {
       return;
     }
 
-    let matched = INITIAL_USERS.find(
+    const userList = users && users.length > 0 ? users : INITIAL_USERS;
+    let matched = userList.find(
       (u) =>
         u.username.toLowerCase() === uTrim &&
         u.password === pTrim
     );
 
-    // Support quick credentials or aliases
+    // Support quick credentials or fallback
     if (!matched) {
-      if ((uTrim === 'kevin_astemo' || uTrim === 'kevin' || uTrim === 'admin') && (pTrim === 'password123' || pTrim === 'admin123' || pTrim === 'admin')) {
-        matched = INITIAL_USERS[0];
-      } else if ((uTrim === 'suep_astemo' || uTrim === 'suep') && (pTrim === 'password123' || pTrim === 'suep123')) {
-        matched = INITIAL_USERS[1];
+      if (uTrim === 'adebayu.eid' && pTrim === 'adebayu12345') {
+        matched = userList.find((u) => u.username.toLowerCase() === 'adebayu.eid') || {
+          id: 1,
+          name: 'Ade Bayu',
+          username: 'adebayu.eid',
+          role: 'Superadmin',
+          password: 'adebayu12345',
+          datetime: '06/09/2026 12:00'
+        };
       }
     }
 
     if (!matched) {
       setIsInvalid(true);
-      setErrorMsg('Invalid username or password. Please use default credentials.');
+      setErrorMsg('Invalid username or password.');
       return;
     }
 
@@ -206,39 +212,23 @@ export default function LoginPage({ onLoginSuccess }) {
             </p>
 
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between p-2 rounded-lg border border-gray-200 bg-gray-50 text-xs text-gray-700">
+              <div className="flex items-center justify-between p-2.5 rounded-lg border border-emerald-200 bg-emerald-50/40 text-xs text-gray-700">
                 <div>
-                  <span className="font-mono font-semibold text-gray-800">kevin_astemo</span>
-                  <span className="text-gray-400 text-[11px] ml-2">(Superadmin)</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono font-semibold text-gray-900">adebayu.eid</span>
+                    <span className="text-emerald-700 bg-emerald-100 text-[10px] font-medium px-1.5 py-0.5 rounded">Superadmin</span>
+                  </div>
+                  <span className="text-gray-400 text-[11px] font-mono">Password: adebayu12345</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => {
-                    setUsername('kevin_astemo');
-                    setPassword('password123');
+                    setUsername('adebayu.eid');
+                    setPassword('adebayu12345');
                     setIsInvalid(false);
                     setErrorMsg('');
                   }}
-                  className="text-xs font-semibold text-[#00A854] hover:text-[#008C45] hover:underline px-2 py-0.5 cursor-pointer"
-                >
-                  Gunakan
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-2 rounded-lg border border-gray-200 bg-gray-50 text-xs text-gray-700">
-                <div>
-                  <span className="font-mono font-semibold text-gray-800">suep_astemo</span>
-                  <span className="text-gray-400 text-[11px] ml-2">(Admin)</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setUsername('suep_astemo');
-                    setPassword('password123');
-                    setIsInvalid(false);
-                    setErrorMsg('');
-                  }}
-                  className="text-xs font-semibold text-[#00A854] hover:text-[#008C45] hover:underline px-2 py-0.5 cursor-pointer"
+                  className="text-xs font-semibold text-[#00A854] hover:text-[#008C45] px-2.5 py-1 cursor-pointer bg-white border border-emerald-200 rounded-md shadow-xs hover:bg-emerald-50 transition-colors"
                 >
                   Gunakan
                 </button>
