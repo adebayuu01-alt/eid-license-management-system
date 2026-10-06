@@ -288,10 +288,8 @@ export default function RoleManagementPage({ roles, onUpdateRoles }) {
                       <td className="py-3.5 px-4 text-gray-600 font-medium align-top leading-5">
                         {(currentPage - 1) * itemsPerPage + index + 1}
                       </td>
-                      <td className="py-3.5 px-4 text-gray-800 font-semibold align-top leading-5">
-                        <span className="inline-flex items-center justify-center px-3 py-0.5 rounded-[6px] text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-300 select-none">
-                          {r.role}
-                        </span>
+                      <td className="py-3.5 px-4 text-gray-800 font-medium align-top leading-5">
+                        {r.role}
                       </td>
                       <td className="py-3.5 px-4 text-gray-700 align-top leading-5">
                         <ul className="space-y-1.5 text-xs">

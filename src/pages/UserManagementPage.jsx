@@ -289,10 +289,8 @@ export default function UserManagementPage({ users, onUpdateUsers, roles = [] })
                       <td className="py-3.5 px-4 text-gray-800 font-medium leading-5">
                         {u.username}
                       </td>
-                      <td className="py-3.5 px-4 text-gray-600 leading-5">
-                        <span className="inline-flex items-center justify-center px-3 py-0.5 rounded-[6px] text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-300 select-none">
-                          {u.role}
-                        </span>
+                      <td className="py-3.5 px-4 text-gray-800 font-medium leading-5">
+                        {u.role}
                       </td>
                       <td className="py-3.5 px-4 text-gray-800 font-medium leading-5">
                         <div className="flex items-center gap-2">
