@@ -294,8 +294,8 @@ export default function UserManagementPage({ users, onUpdateUsers, roles = [] })
                       </td>
                       <td className="py-3.5 px-4 text-gray-800 font-medium leading-5">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs tracking-wider select-none text-gray-700">
-                            {visiblePasswordIds.includes(u.id) ? (u.password || 'password123') : '***************'}
+                          <span className="text-xs tracking-wider select-none text-gray-700">
+                            {visiblePasswordIds.includes(u.id) ? (u.password || 'password123') : '•••••••••••••••'}
                           </span>
                           <button
                             type="button"

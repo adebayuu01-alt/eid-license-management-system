@@ -240,7 +240,7 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
                         <td className="py-3.5 px-4 text-gray-600 font-medium leading-5">
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
-                        <td className="py-3.5 px-4 text-gray-800 font-semibold font-mono text-xs leading-5">
+                        <td className="py-3.5 px-4 text-gray-800 font-medium text-xs leading-5">
                           <div className="flex items-center gap-2">
                             <span>{item.productKey}</span>
                             <button
@@ -376,7 +376,7 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
                   value={formProductKey}
                   onChange={(e) => setFormProductKey(e.target.value)}
                   placeholder="XXXXXX-XXXXX-XXX-XX"
-                  className="flex-1 h-11 px-3.5 bg-white border border-[#D0D5DD] rounded-xl text-sm font-mono text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
+                  className="flex-1 h-11 px-3.5 bg-white border border-[#D0D5DD] rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
                 />
                 <button
                   type="button"

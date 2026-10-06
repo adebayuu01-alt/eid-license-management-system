@@ -215,10 +215,10 @@ export default function LoginPage({ onLoginSuccess, users = INITIAL_USERS }) {
               <div className="flex items-center justify-between p-2.5 rounded-lg border border-emerald-200 bg-emerald-50/40 text-xs text-gray-700">
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="font-mono font-semibold text-gray-900">adebayu.eid</span>
+                    <span className="font-semibold text-gray-900">adebayu.eid</span>
                     <span className="text-emerald-700 bg-emerald-100 text-[10px] font-medium px-1.5 py-0.5 rounded">Superadmin</span>
                   </div>
-                  <span className="text-gray-400 text-[11px] font-mono">Password: adebayu12345</span>
+                  <span className="text-gray-400 text-[11px]">Password: adebayu12345</span>
                 </div>
                 <button
                   type="button"

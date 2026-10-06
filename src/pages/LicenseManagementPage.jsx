@@ -280,7 +280,7 @@ export default function LicenseManagementPage({
                         <td className="py-3.5 px-4 text-gray-600 font-medium leading-5">
                           {(currentPage - 1) * itemsPerPage + index + 1}
                         </td>
-                        <td className="py-3.5 px-4 text-gray-800 font-semibold font-mono text-xs leading-5">
+                        <td className="py-3.5 px-4 text-gray-800 font-medium text-xs leading-5">
                           <div className="flex items-center gap-2">
                             <span>{item.productKey}</span>
                             <button
@@ -300,11 +300,9 @@ export default function LicenseManagementPage({
                           {item.customer}
                         </td>
                         <td className="py-3.5 px-4 text-gray-800 font-medium leading-5">
-                          <span className="px-2 py-0.5 rounded bg-gray-100 text-gray-700 text-xs font-mono">
-                            {item.deviceName}
-                          </span>
+                          {item.deviceName}
                         </td>
-                        <td className="py-3.5 px-4 text-gray-600 font-mono text-xs leading-5">
+                        <td className="py-3.5 px-4 text-gray-600 text-xs leading-5">
                           {item.biosSerial}
                         </td>
                         <td className="py-3.5 px-4 leading-5">
@@ -469,7 +467,7 @@ export default function LicenseManagementPage({
                 value={formBiosSerial}
                 onChange={(e) => setFormBiosSerial(e.target.value)}
                 placeholder="Input Device Bios Serial"
-                className="w-full h-11 px-3.5 bg-white border border-[#D0D5DD] rounded-xl text-sm font-mono text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
+                className="w-full h-11 px-3.5 bg-white border border-[#D0D5DD] rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
               />
             </div>
 

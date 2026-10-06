@@ -19,6 +19,9 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 
+  *,
+  *::before,
+  *::after,
   body,
   button,
   input,
@@ -26,8 +29,12 @@
   textarea,
   table,
   th,
-  td {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  td,
+  span,
+  p,
+  code,
+  pre {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
   }
 }
 
