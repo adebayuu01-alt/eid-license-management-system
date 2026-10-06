@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Search,
   Plus,
-  Edit2,
   Trash2,
   X,
   ChevronLeft,
@@ -25,9 +24,8 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState(null);
 
-  // Add / Edit Modal
+  // Add Modal
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editingKey, setEditingKey] = useState(null);
   const [formProductKey, setFormProductKey] = useState('');
   const [formStatus, setFormStatus] = useState('Available');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -74,17 +72,8 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
   };
 
   const handleOpenAdd = () => {
-    setEditingKey(null);
-    setFormProductKey(''); // Empty default as per requirement 6
+    setFormProductKey('');
     setFormStatus('Available');
-    setIsGenerating(false);
-    setShowAddModal(true);
-  };
-
-  const handleOpenEdit = (item) => {
-    setEditingKey(item);
-    setFormProductKey(item.productKey);
-    setFormStatus(item.status);
     setIsGenerating(false);
     setShowAddModal(true);
   };
@@ -96,39 +85,20 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
       return;
     }
 
-    if (editingKey) {
-      const updated = productKeys.map((item) =>
-        item.id === editingKey.id
-          ? {
-              ...item,
-              productKey: formProductKey.trim(),
-              status: formStatus
-            }
-          : item
-      );
-      onUpdateProductKeys(updated);
-      setToast({
-        type: 'success',
-        title: 'Berhasil Diperbarui',
-        message: `Product Key ${formProductKey} berhasil diperbarui.`
-      });
-    } else {
-      const newKey = {
-        id: Date.now(),
-        productKey: formProductKey.trim(),
-        status: formStatus,
-        datetime: new Date().toLocaleDateString('en-GB') + ' 12:00'
-      };
-      onUpdateProductKeys([...productKeys, newKey]);
-      setToast({
-        type: 'success',
-        title: 'Berhasil Ditambahkan',
-        message: `Product Key ${formProductKey} berhasil ditambahkan ke sistem.`
-      });
-    }
+    const newKey = {
+      id: Date.now(),
+      productKey: formProductKey.trim(),
+      status: formStatus,
+      datetime: new Date().toLocaleDateString('en-GB') + ' 12:00'
+    };
+    onUpdateProductKeys([...productKeys, newKey]);
+    setToast({
+      type: 'success',
+      title: 'Berhasil Ditambahkan',
+      message: `Product Key ${formProductKey} berhasil ditambahkan ke sistem.`
+    });
 
     setShowAddModal(false);
-    setEditingKey(null);
   };
 
   const handleDeleteConfirm = () => {
@@ -263,14 +233,7 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
                           {item.datetime}
                         </td>
                         <td className="py-3.5 px-4 text-center leading-5">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleOpenEdit(item)}
-                              className="p-1.5 border border-amber-300 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
-                              title="Edit Product Key"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
+                          <div className="flex items-center justify-center">
                             <button
                               onClick={() => setDeleteId(item.id)}
                               className="p-1.5 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
@@ -344,13 +307,13 @@ export default function ProductKeyPage({ productKeys, onUpdateProductKeys }) {
         </div>
       </div>
 
-      {/* Add / Edit Product Key Modal */}
+      {/* Add Product Key Modal */}
       <ModalPortal isOpen={showAddModal} onClose={() => setShowAddModal(false)}>
         <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
           <div className="flex items-start justify-between border-b border-gray-100 pb-3">
             <div>
               <h3 className="text-base font-bold text-gray-900">
-                {editingKey ? 'Edit Product Key' : 'Add Product Key'}
+                Add Product Key
               </h3>
               <p className="text-xs text-gray-400 mt-0.5">
                 This field is for desc terms of service
