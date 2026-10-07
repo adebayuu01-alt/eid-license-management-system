@@ -13,7 +13,8 @@ export default function CustomDropdown({
   buttonClassName = '',
   searchable = true,
   showSearchIcon = false,
-  noOptionsText = 'No options found'
+  noOptionsText = 'No options found',
+  placement = 'auto'
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,19 +92,27 @@ export default function CustomDropdown({
     setHighlightedIndex(0);
   }, [searchTerm]);
 
-  // Check viewport bounds to flip dropdown upward if needed
+  // Check viewport bounds to flip dropdown upward if needed or based on placement prop
   useEffect(() => {
+    if (placement === 'top') {
+      setOpenUpward(true);
+      return;
+    }
+    if (placement === 'bottom') {
+      setOpenUpward(false);
+      return;
+    }
     if (isOpen && dropdownRef.current) {
       const rect = dropdownRef.current.getBoundingClientRect();
       const spaceBelow = window.innerHeight - rect.bottom;
       const spaceAbove = rect.top;
-      if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+      if (spaceBelow < 280 && spaceAbove > spaceBelow) {
         setOpenUpward(true);
       } else {
         setOpenUpward(false);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, placement]);
 
   // Keep highlighted item visible when scrolling via keyboard
   useEffect(() => {
@@ -242,7 +251,7 @@ export default function CustomDropdown({
     <div
       ref={dropdownRef}
       className={`relative inline-block w-full text-left select-none ${
-        isOpen ? 'z-50' : 'z-10'
+        isOpen ? 'z-[90]' : 'z-0'
       } ${className}`}
     >
       {/* Trigger Box */}
@@ -252,7 +261,7 @@ export default function CustomDropdown({
           isOpen
             ? 'border-[#00A854] ring-2 ring-emerald-500/20'
             : 'border-[#D0D5DD] hover:border-gray-400'
-        } ${buttonClassName || 'h-[38px] rounded-lg'} ${
+        } rounded-lg ${buttonClassName || 'h-[38px]'} ${
           disabled
             ? 'opacity-50 cursor-not-allowed bg-gray-50'
             : 'cursor-pointer'
@@ -334,7 +343,7 @@ export default function CustomDropdown({
           ref={listRef}
           className={`absolute left-0 right-0 w-full ${
             openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } bg-white border border-[#D0D5DD] rounded-xl shadow-xl z-50 overflow-hidden py-1 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100`}
+          } bg-white border border-[#D0D5DD] rounded-lg shadow-2xl z-[100] overflow-hidden py-1 max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100`}
         >
           {filteredOptions.length > 0 ? (
             <>
@@ -370,18 +379,6 @@ export default function CustomDropdown({
                   </div>
                 );
               })}
-
-              {/* Status footer showing count & shortcut tips (only if searchable) */}
-              {searchable && (
-                <div className="px-3 py-1.5 bg-gray-50/80 border-t border-[#F2F4F7] text-[11px] text-gray-500 flex items-center justify-between">
-                  <span>
-                    {filteredOptions.length} option{filteredOptions.length !== 1 ? 's' : ''} found
-                  </span>
-                  <span className="text-[10px] text-gray-400">
-                    ↑↓ navigate · ↵ select
-                  </span>
-                </div>
-              )}
             </>
           ) : (
             <div className="px-4 py-5 text-center text-xs text-gray-400">
