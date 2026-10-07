@@ -124,7 +124,7 @@ export default function CustomDropdown({
     }
   }, [highlightedIndex, isOpen]);
 
-  const handleTriggerClick = () => {
+  const handleTriggerClick = (e) => {
     if (disabled) return;
     if (!searchable) {
       setIsOpen((prev) => !prev);
@@ -135,6 +135,12 @@ export default function CustomDropdown({
       setIsTyping(false);
       setSearchTerm('');
       setTimeout(() => inputRef.current?.focus(), 10);
+    } else {
+      if (e && e.target !== inputRef.current) {
+        setIsOpen(false);
+        setIsTyping(false);
+        setSearchTerm('');
+      }
     }
   };
 
@@ -294,13 +300,20 @@ export default function CustomDropdown({
               }
               onChange={handleInputChange}
               onFocus={handleFocus}
+              onClick={() => {
+                if (!isOpen) {
+                  setIsOpen(true);
+                  setIsTyping(false);
+                  setSearchTerm('');
+                }
+              }}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className="w-full bg-transparent text-sm text-[#1E232F] focus:outline-none placeholder-gray-400 cursor-text truncate font-normal"
+              className="w-full bg-transparent text-sm text-[#1E232F] focus:outline-none placeholder-gray-400 cursor-pointer truncate font-normal"
             />
           ) : (
             <span
-              className={`truncate ${
+              className={`truncate cursor-pointer ${
                 !value && !selectedOption ? 'text-gray-400' : 'text-[#1E232F]'
               }`}
             >
@@ -309,31 +322,31 @@ export default function CustomDropdown({
           )}
         </div>
 
-        {/* Action icons */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {value && !disabled && (
+        {/* Action icon: X icon when value is selected (replaces down arrow), Chevron when empty */}
+        <div className="flex items-center flex-shrink-0">
+          {value && !disabled ? (
             <button
               type="button"
               onClick={handleClear}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded-md transition-colors cursor-pointer"
+              className="p-1 text-[#667085] hover:text-[#1E232F] hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               title="Clear selection"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4 flex-shrink-0" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={handleChevronClick}
+              className="p-1 text-[#475467] hover:text-gray-800 rounded-md transition-colors cursor-pointer"
+            >
+              {isOpen ? (
+                <ChevronUp className="w-4 h-4 flex-shrink-0" />
+              ) : (
+                <ChevronDown className="w-4 h-4 flex-shrink-0" />
+              )}
             </button>
           )}
-
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={handleChevronClick}
-            className="p-1 text-[#475467] hover:text-gray-800 rounded-md transition-colors cursor-pointer"
-          >
-            {isOpen ? (
-              <ChevronUp className="w-4 h-4 flex-shrink-0" />
-            ) : (
-              <ChevronDown className="w-4 h-4 flex-shrink-0" />
-            )}
-          </button>
         </div>
       </div>
 
