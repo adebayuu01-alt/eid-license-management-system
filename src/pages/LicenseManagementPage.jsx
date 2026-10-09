@@ -356,7 +356,6 @@ export default function LicenseManagementPage({
           motherboardSerial: 'MB-892348102',
           uuid: '45a5b760-1166-4620-aa65-30b0210c5ef3'
         },
-        machinePublicKey: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqX4...',
         encryptedHardware: {
           algorithm: 'RSA-OAEP-256+AesGcmCipher',
           encryptedKey: 'H2Yk5Hf1en4SgaRDNiiwB2SCmjynbQ4DrdPHKASi3nkaqMN7esDqc...',
@@ -384,8 +383,7 @@ export default function LicenseManagementPage({
           motherboardSerialNumber: 'MB-892348102',
           motherboardSerial: 'MB-892348102',
           uuid: '45a5b760-1166-4620-aa65-30b0210c5ef3'
-        },
-        machinePublicKey: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyK7L...'
+        }
       };
       setSelectedFile({ name: 'ASTM-PC-01.licreq', size: 856 });
       setFileContent(sampleData);

@@ -50,18 +50,6 @@ export const INITIAL_ROLES = [
   }
 ];
 
-// Helper for base64 encoding safe in browser & node
-const safeBtoa = (str) => {
-  if (typeof window !== 'undefined' && window.btoa) {
-    return window.btoa(str);
-  }
-  try {
-    return Buffer.from(str).toString('base64');
-  } catch (e) {
-    return 'Q1VTVE9NRVI6IFBULiBBc3RlbW8gQmVrYXNpIE1hbnVmYWN0dXJl';
-  }
-};
-
 export const COMPANY_SPECS = [
   {
     customer: 'PT. Astemo Bekasi Manufacture',
@@ -158,17 +146,12 @@ export const COMPANY_SPECS = [
 export const INITIAL_CUSTOMERS = COMPANY_SPECS.flatMap((comp, compIdx) =>
   comp.projects.map((proj, projIdx) => {
     const id = compIdx * 3 + projIdx + 1;
-    const line1 = `CUSTOMER: ${comp.customer}`;
-    const line2 = `PROJECT: ${proj.name} PK: ${proj.spk}`;
-    const b64_1 = safeBtoa(line1);
-    const b64_2 = safeBtoa(line2);
     const day = String(Math.min(28, compIdx * 2 + projIdx + 1)).padStart(2, '0');
     return {
       id,
       customer: comp.customer,
       project: proj.name,
       noSpk: proj.spk,
-      publicKey: `${b64_1}\n${b64_2}`,
       datetime: `${day}/09/2026 09:${String(projIdx * 15).padStart(2, '0')}`
     };
   })

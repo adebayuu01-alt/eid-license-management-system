@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  KeyRound,
   ShieldCheck,
-  Users,
   Database,
   ChevronDown,
   ChevronRight,
@@ -197,21 +195,8 @@ export default function Layout({
             </div>
           </div>
 
-          {/* Bottom Area: Request License + Logout */}
-          <div className="p-4 border-t border-[#E4E7EC] space-y-1.5">
-            <button
-              onClick={() => onNavigate('request-license')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                activeMenu === 'request-license'
-                  ? 'bg-[#EAF8F1] text-[#00A854] font-semibold'
-                  : 'text-[#475467] hover:bg-emerald-50/60 hover:text-[#00A854]'
-              }`}
-              title="Request License Portal"
-            >
-              <KeyRound className="w-5 h-5 flex-shrink-0 text-[#00A854]" />
-              {sidebarOpen && <span>Request License</span>}
-            </button>
-
+          {/* Bottom Area: Logout */}
+          <div className="p-4 border-t border-[#E4E7EC]">
             <button
               onClick={onLogout}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#FF4D4F] hover:bg-red-50 transition-colors cursor-pointer"

@@ -8,8 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
-  Copy,
-  Check,
   AlertCircle
 } from 'lucide-react';
 import SkeletonTable from '../components/SkeletonTable';
@@ -30,11 +28,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
   const [formProject, setFormProject] = useState('');
   const [formNoSpk, setFormNoSpk] = useState('');
 
-  // Modal 2: Generated Public Key Modal
-  const [showPublicKeyModal, setShowPublicKeyModal] = useState(false);
-  const [generatedPublicKey, setGeneratedPublicKey] = useState('');
-  const [pendingCustomerData, setPendingCustomerData] = useState(null);
-  const [hasCopied, setHasCopied] = useState(false);
+
 
   // Modal 3: Delete Confirmation
   const [deleteId, setDeleteId] = useState(null);
@@ -61,19 +55,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
     }
   };
 
-  // Helper to generate realistic Public Key based on customer, project, spk
-  const createPublicKey = (customerName, projectName, spkNo) => {
-    // Encoded format matching Image 3: Q1VTVE9NRVI6IFBULiBBc3RlbW8gQmVrYXNpIE1hbnVmYWN0dXJl...
-    try {
-      const line1 = `CUSTOMER: ${customerName}`;
-      const line2 = `PROJECT: ${projectName} PK: ${spkNo}`;
-      const b64_1 = btoa(line1);
-      const b64_2 = btoa(line2);
-      return `${b64_1}\n${b64_2}`;
-    } catch (e) {
-      return `Q1VTVE9NRVI6IFBULiBBc3RlbW8gQmVrYXNpIE1hbnVmYWN0dXJl\nUFJPSkVLVDoUgTGluZSBNb25pdG9yaW5nIFBLOiBBQk0tTE0tMjAyNi0wMQ==`;
-    }
-  };
+
 
   // Normalize customer records to flat rows (handling both new flat schema & legacy projects array)
   const normalizedCustomers = useMemo(() => {
@@ -88,9 +70,6 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
             customer: item.customer,
             project: typeof p === 'object' ? p.name : p,
             noSpk: typeof p === 'object' ? p.noSpk : '',
-            publicKey:
-              item.publicKey ||
-              createPublicKey(item.customer, typeof p === 'object' ? p.name : p, typeof p === 'object' ? p.noSpk : ''),
             datetime: item.datetime || '06/09/2026 12:00'
           });
         });
@@ -101,9 +80,6 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
           customer: item.customer,
           project: item.project || 'Line Monitoring',
           noSpk: item.noSpk || 'ABM-LM-2026-01',
-          publicKey:
-            item.publicKey ||
-            createPublicKey(item.customer, item.project || 'Line Monitoring', item.noSpk || 'ABM-LM-2026-01'),
           datetime: item.datetime || '06/09/2026 12:00'
         });
       }
@@ -119,8 +95,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
         const matchCustomer = item.customer?.toLowerCase().includes(q);
         const matchProject = item.project?.toLowerCase().includes(q);
         const matchSpk = item.noSpk?.toLowerCase().includes(q);
-        const matchKey = item.publicKey?.toLowerCase().includes(q);
-        if (!matchCustomer && !matchProject && !matchSpk && !matchKey) {
+        if (!matchCustomer && !matchProject && !matchSpk) {
           return false;
         }
       }
@@ -184,7 +159,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
     setShowAddModal(true);
   };
 
-  // Handle Submit on Add Customer Modal (triggers Public Key generation)
+  // Handle Submit on Add / Edit Customer Modal
   const handleSubmitCustomer = (e) => {
     e.preventDefault();
     if (!formCustomer.trim()) {
@@ -200,10 +175,6 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
       return;
     }
 
-    // Generate Public Key
-    const generatedKey = createPublicKey(formCustomer.trim(), formProject.trim(), formNoSpk.trim());
-    setGeneratedPublicKey(generatedKey);
-
     if (editingCustomer) {
       // Update existing customer
       const updated = customers.map((c) => {
@@ -218,7 +189,6 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
             customer: formCustomer.trim(),
             project: formProject.trim(),
             noSpk: formNoSpk.trim(),
-            publicKey: generatedKey,
             datetime: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
           };
         }
@@ -228,7 +198,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
       setToast({
         type: 'success',
         title: 'Berhasil Diperbarui',
-        message: `Data pelanggan ${formCustomer.trim()} berhasil diperbarui dengan Public Key baru.`
+        message: `Data pelanggan ${formCustomer.trim()} berhasil diperbarui.`
       });
     } else {
       // Add new customer
@@ -237,35 +207,19 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
         customer: formCustomer.trim(),
         project: formProject.trim(),
         noSpk: formNoSpk.trim(),
-        publicKey: generatedKey,
-        datetime: new Date().toLocaleDateString('en-GB') + ' 12:00'
+        datetime: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
       };
       onUpdateCustomers([newCustomer, ...customers]);
       setToast({
         type: 'success',
         title: 'Berhasil Ditambahkan',
-        message: `Customer ${formCustomer.trim()} berhasil ditambahkan dengan Public Key!`
+        message: `Customer ${formCustomer.trim()} berhasil ditambahkan!`
       });
     }
 
-    // Close Add Modal, Open Public Key Modal (which only has close X button)
+    // Close Add Modal
     setShowAddModal(false);
-    setHasCopied(false);
-    setShowPublicKeyModal(true);
     setEditingCustomer(null);
-  };
-
-  // Copy to clipboard helper
-  const handleCopyPublicKey = (keyText) => {
-    if (!keyText) return;
-    navigator.clipboard.writeText(keyText);
-    setHasCopied(true);
-    setToast({
-      type: 'success',
-      title: 'Disalin!',
-      message: 'Public Key berhasil disalin ke clipboard.'
-    });
-    setTimeout(() => setHasCopied(false), 2000);
   };
 
   // Handle Delete
@@ -400,16 +354,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
                       </div>
                     </th>
 
-                    {/* 5. Public Key */}
-                    <th className="py-3.5 px-4 min-w-[280px] whitespace-nowrap">
-                      <div
-                        className="flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
-                        onClick={() => handleSort('publicKey')}
-                      >
-                        <span className="whitespace-nowrap">Public Key</span>
-                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
-                      </div>
-                    </th>
+
 
                     {/* 6. Action */}
                     <th className="py-3.5 px-4 text-center w-28 whitespace-nowrap">Action</th>
@@ -419,8 +364,6 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
                 <tbody className="divide-y divide-[#E4E7EC] bg-white">
                   {paginatedCustomers.map((item, index) => {
                     const rowNumber = (currentPage - 1) * itemsPerPage + index + 1;
-                    const truncatedKey =
-                      (item.publicKey || '').replace(/\n/g, ' ').slice(0, 26) + '...';
 
                     return (
                       <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
@@ -444,24 +387,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
                           {item.noSpk || <span className="text-gray-400">-</span>}
                         </td>
 
-                        {/* 5. Public Key (Truncated text + Copy Icon) */}
-                        <td className="py-3.5 px-4 leading-5 align-middle">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="font-mono text-xs text-gray-700 select-all truncate max-w-[220px]"
-                              title={item.publicKey}
-                            >
-                              {truncatedKey}
-                            </span>
-                            <button
-                              onClick={() => handleCopyPublicKey(item.publicKey)}
-                              className="p-1 text-gray-500 hover:text-[#00A854] hover:bg-emerald-50 rounded transition-colors cursor-pointer"
-                              title="Salin Public Key"
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
+
 
                         {/* 6. Action buttons (Edit & Delete) */}
                         <td className="py-3.5 px-4 text-center leading-5 align-middle">
@@ -491,7 +417,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
 
                   {paginatedCustomers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-10 text-center text-gray-400 text-sm">
+                      <td colSpan={5} className="py-10 text-center text-gray-400 text-sm">
                         No customer data found.
                       </td>
                     </tr>
@@ -647,53 +573,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
         </div>
       </ModalPortal>
 
-      {/* MODAL 2: Public Key (Image 3) */}
-      <ModalPortal isOpen={showPublicKeyModal} onClose={() => setShowPublicKeyModal(false)}>
-        <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
-          {/* Header */}
-          <div className="flex items-start justify-between border-b border-gray-100 pb-3">
-            <div>
-              <h3 className="text-base font-bold text-gray-900">Public Key</h3>
-              <p className="text-xs text-gray-400 mt-0.5">
-                This field is for desc terms of service
-              </p>
-            </div>
-            <button
-              onClick={() => setShowPublicKeyModal(false)}
-              className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
 
-          {/* Public Key Display Box */}
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-gray-900">
-              Public Key
-            </label>
-            <div className="relative border border-[#D0D5DD] rounded-lg p-3 bg-white">
-              <textarea
-                readOnly
-                value={generatedPublicKey}
-                rows={3}
-                className="w-full text-xs font-mono text-gray-800 bg-transparent resize-none border-none focus:outline-none pr-8 select-all leading-relaxed"
-              />
-              <button
-                onClick={() => handleCopyPublicKey(generatedPublicKey)}
-                className="absolute top-2.5 right-2.5 p-1 text-gray-400 hover:text-[#00A854] rounded transition-colors cursor-pointer"
-                title="Salin Public Key"
-              >
-                {hasCopied ? (
-                  <Check className="w-4 h-4 text-[#00A854]" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </ModalPortal>
 
       {/* MODAL 3: Delete Confirmation */}
       <ModalPortal isOpen={!!deleteId} onClose={() => setDeleteId(null)}>

@@ -6,7 +6,6 @@ import ProductKeyPage from './pages/ProductKeyPage';
 import UserManagementPage from './pages/UserManagementPage';
 import RoleManagementPage from './pages/RoleManagementPage';
 import MasterDataCustomerPage from './pages/MasterDataCustomerPage';
-import RequestProductKeyPage from './pages/RequestProductKeyPage';
 
 import {
   INITIAL_USERS,
@@ -50,16 +49,6 @@ export default function App() {
   // If not logged in, render LoginPage
   if (!currentUser) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} users={users} />;
-  }
-
-  // If activeMenu is 'request-license', render client portal (Image 2)
-  if (activeMenu === 'request-license') {
-    return (
-      <RequestProductKeyPage
-        onBackToAdmin={() => setActiveMenu('license-management')}
-        customers={customers}
-      />
-    );
   }
 
   return (
