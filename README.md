@@ -1,10 +1,10 @@
-# ASTEMO - QUALITY DEVELOPMENT (Concept Prototype)
+# EID - LICENSE MANAGEMENT (Concept Prototype)
 
-Prototipe interaktif sistem monitoring line welding berdasarkan desain Figma resmi **ASTEMO - QUALITY DEVELOPMENT**.
+Prototipe interaktif sistem EID-LICENSE MANAGEMENT berdasarkan desain Figma resmi **EID - LICENSE MANAGEMENT**.
 
 ## Lokasi Project
 ```
-D:\ADE\KERJAAN\PT. Electrindo Inti Dinamika\UIUX PROJECT\ASTEMO - QUALITY DEVELOPMENT\Concept Project
+D:\ADE\KERJAAN\PT. Electrindo Inti Dinamika\UIUX PROJECT\EID - LICENSE MANAGEMENT\Concept Project
 ```
 
 ---

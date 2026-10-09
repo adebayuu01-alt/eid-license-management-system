@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Search,
   Plus,
@@ -7,7 +7,10 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  ArrowUpDown
+  ArrowUpDown,
+  Copy,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import SkeletonTable from '../components/SkeletonTable';
 import Toast from '../components/Toast';
@@ -20,13 +23,20 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState(null);
 
-  // Add / Edit Modal State
+  // Modal 1: Add / Edit Customer
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-  const [formCustomerName, setFormCustomerName] = useState('');
-  const [formProjects, setFormProjects] = useState([{ id: 1, name: '', noSpk: '' }]);
+  const [formCustomer, setFormCustomer] = useState('');
+  const [formProject, setFormProject] = useState('');
+  const [formNoSpk, setFormNoSpk] = useState('');
 
-  // Delete State
+  // Modal 2: Generated Public Key Modal
+  const [showPublicKeyModal, setShowPublicKeyModal] = useState(false);
+  const [generatedPublicKey, setGeneratedPublicKey] = useState('');
+  const [pendingCustomerData, setPendingCustomerData] = useState(null);
+  const [hasCopied, setHasCopied] = useState(false);
+
+  // Modal 3: Delete Confirmation
   const [deleteId, setDeleteId] = useState(null);
 
   // Pagination & Sorting State
@@ -38,7 +48,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
 
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 400);
+    const timer = setTimeout(() => setLoading(false), 300);
     return () => clearTimeout(timer);
   }, []);
 
@@ -51,155 +61,223 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
     }
   };
 
+  // Helper to generate realistic Public Key based on customer, project, spk
+  const createPublicKey = (customerName, projectName, spkNo) => {
+    // Encoded format matching Image 3: Q1VTVE9NRVI6IFBULiBBc3RlbW8gQmVrYXNpIE1hbnVmYWN0dXJl...
+    try {
+      const line1 = `CUSTOMER: ${customerName}`;
+      const line2 = `PROJECT: ${projectName} PK: ${spkNo}`;
+      const b64_1 = btoa(line1);
+      const b64_2 = btoa(line2);
+      return `${b64_1}\n${b64_2}`;
+    } catch (e) {
+      return `Q1VTVE9NRVI6IFBULiBBc3RlbW8gQmVrYXNpIE1hbnVmYWN0dXJl\nUFJPSkVLVDoUgTGluZSBNb25pdG9yaW5nIFBLOiBBQk0tTE0tMjAyNi0wMQ==`;
+    }
+  };
+
+  // Normalize customer records to flat rows (handling both new flat schema & legacy projects array)
+  const normalizedCustomers = useMemo(() => {
+    const list = [];
+    customers.forEach((item) => {
+      if (item.projects && Array.isArray(item.projects) && item.projects.length > 0) {
+        // Expand or take first project
+        item.projects.forEach((p, pIdx) => {
+          list.push({
+            id: `${item.id}-${p.id || pIdx}`,
+            originalId: item.id,
+            customer: item.customer,
+            project: typeof p === 'object' ? p.name : p,
+            noSpk: typeof p === 'object' ? p.noSpk : '',
+            publicKey:
+              item.publicKey ||
+              createPublicKey(item.customer, typeof p === 'object' ? p.name : p, typeof p === 'object' ? p.noSpk : ''),
+            datetime: item.datetime || '06/09/2026 12:00'
+          });
+        });
+      } else {
+        list.push({
+          id: item.id,
+          originalId: item.id,
+          customer: item.customer,
+          project: item.project || 'Line Monitoring',
+          noSpk: item.noSpk || 'ABM-LM-2026-01',
+          publicKey:
+            item.publicKey ||
+            createPublicKey(item.customer, item.project || 'Line Monitoring', item.noSpk || 'ABM-LM-2026-01'),
+          datetime: item.datetime || '06/09/2026 12:00'
+        });
+      }
+    });
+    return list;
+  }, [customers]);
+
   // Filter customers by Search and DateRange
-  const filteredCustomers = customers.filter((item) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
+  const filteredCustomers = useMemo(() => {
+    return normalizedCustomers.filter((item) => {
+      const q = searchQuery.toLowerCase().trim();
+      if (q) {
+        const matchCustomer = item.customer?.toLowerCase().includes(q);
+        const matchProject = item.project?.toLowerCase().includes(q);
+        const matchSpk = item.noSpk?.toLowerCase().includes(q);
+        const matchKey = item.publicKey?.toLowerCase().includes(q);
+        if (!matchCustomer && !matchProject && !matchSpk && !matchKey) {
+          return false;
+        }
+      }
 
-    const matchCustomer = item.customer?.toLowerCase().includes(q);
-    const matchProject = item.projects?.some((p) =>
-      (typeof p === 'object' ? p.name : p)?.toLowerCase().includes(q)
-    );
-    const matchSpk = item.projects?.some((p) =>
-      (typeof p === 'object' ? p.noSpk : '')?.toLowerCase().includes(q)
-    );
+      // Date Range Filter
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        const parts = (item.datetime || '').split(' ')[0].split('/');
+        if (parts.length === 3) {
+          const itemDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+          const startDate = dateRange[0].startOf('day').toDate();
+          const endDate = dateRange[1].endOf('day').toDate();
+          if (itemDate < startDate || itemDate > endDate) {
+            return false;
+          }
+        }
+      }
 
-    return matchCustomer || matchProject || matchSpk;
-  });
+      return true;
+    });
+  }, [normalizedCustomers, searchQuery, dateRange]);
 
   // Sort filtered customers
-  const sortedCustomers = [...filteredCustomers].sort((a, b) => {
-    let aVal = '';
-    let bVal = '';
+  const sortedCustomers = useMemo(() => {
+    return [...filteredCustomers].sort((a, b) => {
+      let aVal = a[sortField] || '';
+      let bVal = b[sortField] || '';
 
-    if (sortField === 'customer') {
-      aVal = a.customer || '';
-      bVal = b.customer || '';
-      return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-    } else if (sortField === 'datetime') {
-      aVal = a.datetime || '';
-      bVal = b.datetime || '';
-      return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-    }
-    return 0;
-  });
+      if (sortField === 'no') {
+        return sortOrder === 'asc' ? Number(a.id) - Number(b.id) : Number(b.id) - Number(a.id);
+      }
+
+      if (typeof aVal === 'string') {
+        return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return 0;
+    });
+  }, [filteredCustomers, sortField, sortOrder]);
 
   const totalEntries = sortedCustomers.length;
   const totalPages = Math.ceil(totalEntries / itemsPerPage) || 1;
-  const paginatedCustomers = sortedCustomers.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sortedCustomers.slice(start, start + itemsPerPage);
+  }, [sortedCustomers, currentPage, itemsPerPage]);
 
+  // Open Add Modal
   const handleOpenAdd = () => {
     setEditingCustomer(null);
-    setFormCustomerName('');
-    setFormProjects([{ id: Date.now(), name: '', noSpk: '' }]);
+    setFormCustomer('');
+    setFormProject('');
+    setFormNoSpk('');
     setShowAddModal(true);
   };
 
+  // Open Edit Modal
   const handleOpenEdit = (item) => {
     setEditingCustomer(item);
-    setFormCustomerName(item.customer || '');
-    if (item.projects && item.projects.length > 0) {
-      setFormProjects(
-        item.projects.map((p, idx) => ({
-          id: p.id || Date.now() + idx,
-          name: typeof p === 'object' ? p.name : p,
-          noSpk: typeof p === 'object' ? p.noSpk || '' : ''
-        }))
-      );
-    } else {
-      setFormProjects([{ id: Date.now(), name: '', noSpk: '' }]);
-    }
+    setFormCustomer(item.customer || '');
+    setFormProject(item.project || '');
+    setFormNoSpk(item.noSpk || '');
     setShowAddModal(true);
   };
 
-  const handleAddProjectRow = () => {
-    setFormProjects((prev) => [...prev, { id: Date.now(), name: '', noSpk: '' }]);
-  };
-
-  const handleRemoveProjectRow = (index) => {
-    if (formProjects.length > 1) {
-      setFormProjects((prev) => prev.filter((_, i) => i !== index));
-    } else {
-      setFormProjects([{ id: Date.now(), name: '', noSpk: '' }]);
-    }
-  };
-
-  const handleProjectChange = (index, field, value) => {
-    setFormProjects((prev) =>
-      prev.map((proj, i) => (i === index ? { ...proj, [field]: value } : proj))
-    );
-  };
-
-  const handleSaveCustomer = (e) => {
+  // Handle Submit on Add Customer Modal (triggers Public Key generation)
+  const handleSubmitCustomer = (e) => {
     e.preventDefault();
-    if (!formCustomerName.trim()) {
+    if (!formCustomer.trim()) {
       setToast({ type: 'error', title: 'Error', message: 'Customer name is required.' });
       return;
     }
-
-    // Filter valid project rows (at least project name or SPK filled)
-    const validProjects = formProjects
-      .filter((p) => p.name.trim() || p.noSpk.trim())
-      .map((p, idx) => ({
-        id: p.id || idx + 1,
-        name: p.name.trim(),
-        noSpk: p.noSpk.trim()
-      }));
-
-    if (validProjects.length === 0) {
-      setToast({
-        type: 'error',
-        title: 'Error',
-        message: 'At least one Project & No. SPK is required.'
-      });
+    if (!formProject.trim()) {
+      setToast({ type: 'error', title: 'Error', message: 'Project is required.' });
+      return;
+    }
+    if (!formNoSpk.trim()) {
+      setToast({ type: 'error', title: 'Error', message: 'No. SPK is required.' });
       return;
     }
 
+    // Generate Public Key
+    const generatedKey = createPublicKey(formCustomer.trim(), formProject.trim(), formNoSpk.trim());
+    setGeneratedPublicKey(generatedKey);
+
     if (editingCustomer) {
-      const updated = customers.map((item) =>
-        item.id === editingCustomer.id
-          ? {
-              ...item,
-              customer: formCustomerName.trim(),
-              projects: validProjects
-            }
-          : item
-      );
+      // Update existing customer
+      const updated = customers.map((c) => {
+        if (
+          c.id === editingCustomer.originalId ||
+          c.id === editingCustomer.id ||
+          String(c.id) === String(editingCustomer.originalId) ||
+          String(c.id) === String(editingCustomer.id)
+        ) {
+          return {
+            ...c,
+            customer: formCustomer.trim(),
+            project: formProject.trim(),
+            noSpk: formNoSpk.trim(),
+            publicKey: generatedKey,
+            datetime: new Date().toLocaleDateString('en-GB') + ' ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+          };
+        }
+        return c;
+      });
       onUpdateCustomers(updated);
       setToast({
         type: 'success',
         title: 'Berhasil Diperbarui',
-        message: `Data pelanggan ${formCustomerName} berhasil diperbarui.`
+        message: `Data pelanggan ${formCustomer.trim()} berhasil diperbarui dengan Public Key baru.`
       });
     } else {
+      // Add new customer
       const newCustomer = {
         id: Date.now(),
-        customer: formCustomerName.trim(),
-        projects: validProjects,
+        customer: formCustomer.trim(),
+        project: formProject.trim(),
+        noSpk: formNoSpk.trim(),
+        publicKey: generatedKey,
         datetime: new Date().toLocaleDateString('en-GB') + ' 12:00'
       };
       onUpdateCustomers([newCustomer, ...customers]);
       setToast({
         type: 'success',
         title: 'Berhasil Ditambahkan',
-        message: `Pelanggan baru ${formCustomerName} berhasil ditambahkan.`
+        message: `Customer ${formCustomer.trim()} berhasil ditambahkan dengan Public Key!`
       });
     }
 
+    // Close Add Modal, Open Public Key Modal (which only has close X button)
     setShowAddModal(false);
+    setHasCopied(false);
+    setShowPublicKeyModal(true);
     setEditingCustomer(null);
   };
 
+  // Copy to clipboard helper
+  const handleCopyPublicKey = (keyText) => {
+    if (!keyText) return;
+    navigator.clipboard.writeText(keyText);
+    setHasCopied(true);
+    setToast({
+      type: 'success',
+      title: 'Disalin!',
+      message: 'Public Key berhasil disalin ke clipboard.'
+    });
+    setTimeout(() => setHasCopied(false), 2000);
+  };
+
+  // Handle Delete
   const handleDeleteConfirm = () => {
     if (deleteId) {
-      onUpdateCustomers(customers.filter((item) => item.id !== deleteId));
+      onUpdateCustomers(
+        customers.filter((c) => c.id !== deleteId && `${c.id}` !== `${deleteId}`)
+      );
       setToast({
         type: 'success',
         title: 'Berhasil Dihapus',
-        message: 'Data pelanggan berhasil dihapus.'
+        message: 'Data customer berhasil dihapus.'
       });
       setDeleteId(null);
     }
@@ -215,11 +293,12 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
         />
 
         {/* Table Card */}
-        <div className="bg-white rounded-xl border border-[#E4E7EC] p-4 shadow-sm space-y-5">
-          {/* Filters & Actions */}
+        <div className="bg-white rounded-xl border border-[#E4E7EC] p-5 shadow-sm space-y-4">
+          {/* Filters & Actions - Matching Image 4 */}
           <div className="flex flex-wrap items-center justify-between gap-4">
+            {/* Search Input with Clear X */}
             <div className="relative w-80">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
@@ -228,28 +307,40 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
                   setCurrentPage(1);
                 }}
                 placeholder="Search"
-                className="w-full pl-10 pr-9 py-2 border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:border-emerald-500"
+                className="w-full h-[38px] pl-10 pr-9 border border-[#D0D5DD] rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
               />
-              {searchQuery && (
+              {searchQuery ? (
                 <button
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => {
+                    setSearchQuery('');
+                    setCurrentPage(1);
+                  }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
+              ) : (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
+                  ✕
+                </span>
               )}
             </div>
 
+            {/* Right: Date Range Picker & Add Data Button */}
             <div className="flex items-center gap-3">
               {/* Ant Design DateRangePicker */}
               <AntDateRangePicker
                 value={dateRange}
-                onChange={(dates) => setDateRange(dates)}
+                onChange={(dates) => {
+                  setDateRange(dates);
+                  setCurrentPage(1);
+                }}
               />
 
+              {/* + Add Data Button */}
               <button
                 onClick={handleOpenAdd}
-                className="flex items-center gap-2 px-4 py-2 bg-[#00A854] hover:bg-[#008C45] text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
+                className="flex items-center gap-2 h-[38px] px-4 bg-[#00A854] hover:bg-[#008C45] text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer whitespace-nowrap"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Data</span>
@@ -257,138 +348,150 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
             </div>
           </div>
 
-          {/* Table / Skeleton */}
+          {/* Table View - Matching Image 4 */}
           {loading ? (
-            <SkeletonTable rows={5} cols={6} />
+            <SkeletonTable rows={6} cols={6} />
           ) : (
             <div className="overflow-x-auto rounded-lg border border-[#D0D5DD]">
               <table className="w-full text-left border-collapse text-sm font-sans">
                 <thead className="bg-[#F2F2F7] border-b border-[#D0D5DD]">
-                  <tr className="text-[#23262B] font-semibold">
-                    <th className="py-3.5 px-4 w-16">
+                  <tr className="text-[#23262B] font-semibold whitespace-nowrap">
+                    {/* 1. No */}
+                    <th className="py-3.5 px-4 w-16 whitespace-nowrap">
                       <div
-                        className="flex items-center gap-1.5 cursor-pointer select-none"
+                        className="flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
                         onClick={() => handleSort('no')}
                       >
-                        <span>No</span>
-                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500" />
+                        <span className="whitespace-nowrap">No</span>
+                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       </div>
                     </th>
-                    <th className="py-3.5 px-4 min-w-[220px]">
+
+                    {/* 2. Customer */}
+                    <th className="py-3.5 px-4 min-w-[240px] whitespace-nowrap">
                       <div
-                        className="flex items-center gap-1.5 cursor-pointer select-none"
+                        className="flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
                         onClick={() => handleSort('customer')}
                       >
-                        <span>Customer</span>
-                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500" />
+                        <span className="whitespace-nowrap">Customer</span>
+                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       </div>
                     </th>
-                    <th className="py-3.5 px-4 min-w-[200px]">
-                      <div className="flex items-center gap-1.5 cursor-pointer select-none">
-                        <span>Project</span>
-                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500" />
-                      </div>
-                    </th>
-                    <th className="py-3.5 px-4 min-w-[200px]">
-                      <div className="flex items-center gap-1.5 cursor-pointer select-none">
-                        <span>No. SPK</span>
-                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500" />
-                      </div>
-                    </th>
-                    <th className="py-3.5 px-4 w-48">
+
+                    {/* 3. Project */}
+                    <th className="py-3.5 px-4 min-w-[180px] whitespace-nowrap">
                       <div
-                        className="flex items-center gap-1.5 cursor-pointer select-none"
-                        onClick={() => handleSort('datetime')}
+                        className="flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
+                        onClick={() => handleSort('project')}
                       >
-                        <span>Datetime</span>
-                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500" />
+                        <span className="whitespace-nowrap">Project</span>
+                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
                       </div>
                     </th>
-                    <th className="py-3.5 px-4 text-center w-28">Action</th>
+
+                    {/* 4. No. SPK */}
+                    <th className="py-3.5 px-4 min-w-[180px] whitespace-nowrap">
+                      <div
+                        className="flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
+                        onClick={() => handleSort('noSpk')}
+                      >
+                        <span className="whitespace-nowrap">No. SPK</span>
+                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      </div>
+                    </th>
+
+                    {/* 5. Public Key */}
+                    <th className="py-3.5 px-4 min-w-[280px] whitespace-nowrap">
+                      <div
+                        className="flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
+                        onClick={() => handleSort('publicKey')}
+                      >
+                        <span className="whitespace-nowrap">Public Key</span>
+                        <ArrowUpDown className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                      </div>
+                    </th>
+
+                    {/* 6. Action */}
+                    <th className="py-3.5 px-4 text-center w-28 whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-[#E4E7EC] bg-white">
                   {paginatedCustomers.map((item, index) => {
-                    const rowProjects = item.projects || [];
+                    const rowNumber = (currentPage - 1) * itemsPerPage + index + 1;
+                    const truncatedKey =
+                      (item.publicKey || '').replace(/\n/g, ' ').slice(0, 26) + '...';
 
                     return (
                       <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                        {/* No */}
+                        {/* 1. No */}
                         <td className="py-3.5 px-4 text-gray-600 font-medium leading-5 align-middle">
-                          {(currentPage - 1) * itemsPerPage + index + 1}
+                          {rowNumber}
                         </td>
 
-                        {/* Customer */}
-                        <td className="py-3.5 px-4 text-gray-800 font-semibold leading-5 align-middle">
+                        {/* 2. Customer */}
+                        <td className="py-3.5 px-4 text-gray-800 font-medium leading-5 align-middle">
                           {item.customer}
                         </td>
 
-                        {/* Project (Bullet list) */}
+                        {/* 3. Project */}
                         <td className="py-3.5 px-4 text-gray-700 leading-5 align-middle">
-                          {rowProjects.length > 0 ? (
-                            <ul className="space-y-1.5">
-                              {rowProjects.map((p, pIdx) => (
-                                <li key={pIdx} className="flex items-center gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-800 flex-shrink-0"></span>
-                                  <span className="text-gray-800 font-normal">
-                                    {typeof p === 'object' ? p.name : p}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
+                          {item.project || <span className="text-gray-400">-</span>}
                         </td>
 
-                        {/* No. SPK (Bullet list corresponding to projects) */}
+                        {/* 4. No. SPK */}
                         <td className="py-3.5 px-4 text-gray-700 leading-5 align-middle">
-                          {rowProjects.length > 0 ? (
-                            <ul className="space-y-1.5">
-                              {rowProjects.map((p, pIdx) => (
-                                <li key={pIdx} className="flex items-center gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-800 flex-shrink-0"></span>
-                                  <span className="text-gray-800 font-normal">
-                                    {typeof p === 'object' ? p.noSpk : '-'}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
+                          {item.noSpk || <span className="text-gray-400">-</span>}
                         </td>
 
-                        {/* Datetime */}
-                        <td className="py-3.5 px-4 text-gray-600 leading-5 align-middle">
-                          {item.datetime}
+                        {/* 5. Public Key (Truncated text + Copy Icon) */}
+                        <td className="py-3.5 px-4 leading-5 align-middle">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="font-mono text-xs text-gray-700 select-all truncate max-w-[220px]"
+                              title={item.publicKey}
+                            >
+                              {truncatedKey}
+                            </span>
+                            <button
+                              onClick={() => handleCopyPublicKey(item.publicKey)}
+                              className="p-1 text-gray-500 hover:text-[#00A854] hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                              title="Salin Public Key"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
 
-                        {/* Action buttons */}
+                        {/* 6. Action buttons (Edit & Delete) */}
                         <td className="py-3.5 px-4 text-center leading-5 align-middle">
                           <div className="flex items-center justify-center gap-2">
+                            {/* Edit Button (Yellow outline) */}
                             <button
                               onClick={() => handleOpenEdit(item)}
-                              className="p-1.5 border border-amber-300 text-amber-500 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                              className="w-7 h-7 flex items-center justify-center border border-[#FADB14] bg-[#FFFBE6] hover:bg-[#FFF1B8] text-[#D48806] rounded transition-colors cursor-pointer"
                               title="Edit Customer"
                             >
-                              <Edit2 className="w-4 h-4" />
+                              <Edit2 className="w-3.5 h-3.5" />
                             </button>
+
+                            {/* Delete Button (Red outline) */}
                             <button
-                              onClick={() => setDeleteId(item.id)}
-                              className="p-1.5 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                              title="Delete Customer"
+                              onClick={() => setDeleteId(item.originalId || item.id)}
+                              className="w-7 h-7 flex items-center justify-center border border-[#FFA39E] bg-[#FFF1F0] hover:bg-[#FFCCC7] text-[#FF4D4F] rounded transition-colors cursor-pointer"
+                              title="Hapus Customer"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
                       </tr>
                     );
                   })}
+
                   {paginatedCustomers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-gray-400 text-sm">
+                      <td colSpan={6} className="py-10 text-center text-gray-400 text-sm">
                         No customer data found.
                       </td>
                     </tr>
@@ -398,12 +501,14 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
             </div>
           )}
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500">
+          {/* Pagination Footer */}
+          <div className="flex flex-wrap items-center justify-between pt-4 border-t border-gray-100 text-xs text-gray-500 gap-3">
             <div>
-              Showing <span className="font-semibold text-gray-700">
+              Showing{' '}
+              <span className="font-semibold text-gray-700">
                 {totalEntries === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
-              </span> to{' '}
+              </span>{' '}
+              to{' '}
               <span className="font-semibold text-gray-700">
                 {Math.min(currentPage * itemsPerPage, totalEntries)}
               </span>{' '}
@@ -416,22 +521,23 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
                 <button
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                  className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                  className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5 text-gray-600" />
                 </button>
 
-                <span className="w-7 h-7 flex items-center justify-center border border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold rounded-lg text-xs">
+                <span className="w-7 h-7 flex items-center justify-center border border-gray-200 bg-white text-gray-700 font-semibold rounded-lg text-xs">
                   {currentPage}
                 </span>
-                <span>/ {totalPages}</span>
+
+                <span className="text-gray-500">/ {totalPages}</span>
 
                 <button
                   disabled={currentPage >= totalPages}
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                  className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40"
+                  className="w-7 h-7 flex items-center justify-center border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
                 </button>
               </div>
 
@@ -443,7 +549,7 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="px-2 py-1 border border-gray-200 rounded-lg bg-white text-gray-700 text-xs focus:outline-none"
+                  className="px-2 py-1 border border-gray-200 rounded-lg bg-white text-gray-700 text-xs focus:outline-none cursor-pointer"
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
@@ -456,10 +562,10 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
         </div>
       </div>
 
-      {/* Add / Edit Customer Modal (Matching Image 1) */}
+      {/* MODAL 1: Add Customer (Images 1 & 2) */}
       <ModalPortal isOpen={showAddModal} onClose={() => setShowAddModal(false)}>
-        <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
-          {/* Modal Header */}
+        <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          {/* Header */}
           <div className="flex items-start justify-between border-b border-gray-100 pb-3">
             <div>
               <h3 className="text-base font-bold text-gray-900">
@@ -471,135 +577,155 @@ export default function MasterDataCustomerPage({ customers = [], onUpdateCustome
             </div>
             <button
               onClick={() => setShowAddModal(false)}
-              className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer"
+              className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleSaveCustomer} className="space-y-4">
-            {/* Customer Name */}
+          <form onSubmit={handleSubmitCustomer} className="space-y-4">
+            {/* Field 1: Customer (Full width) */}
             <div>
               <label className="block text-sm font-semibold text-gray-900 mb-1.5">
                 Customer
               </label>
               <input
                 type="text"
-                value={formCustomerName}
-                onChange={(e) => setFormCustomerName(e.target.value)}
+                value={formCustomer}
+                onChange={(e) => setFormCustomer(e.target.value)}
                 placeholder="Input Customer"
-                className="w-full h-11 px-3.5 bg-white border border-[#D0D5DD] rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
-                required
+                className="w-full h-10 px-3 border border-[#D0D5DD] rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
               />
             </div>
 
-            {/* Add More Section (Projects & No. SPK) */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-semibold text-gray-900">Add More</span>
-                <button
-                  type="button"
-                  onClick={handleAddProjectRow}
-                  className="w-6 h-6 bg-[#00A854] hover:bg-[#008C45] text-white rounded flex items-center justify-center transition-colors cursor-pointer shadow-sm"
-                  title="Add more project"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
+            {/* Row 2: Project & No. SPK (Grid 2 columns) */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">
+                  Project
+                </label>
+                <input
+                  type="text"
+                  value={formProject}
+                  onChange={(e) => setFormProject(e.target.value)}
+                  placeholder="Input Project"
+                  className="w-full h-10 px-3 border border-[#D0D5DD] rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
+                />
               </div>
 
-              <div className="space-y-4 overflow-visible">
-                {formProjects.map((proj, idx) => (
-                  <div key={proj.id || idx}>
-                    {/* Header labels only on first row */}
-                    {idx === 0 && (
-                      <div className="flex items-center gap-4 mb-1.5">
-                        <div className="grid grid-cols-2 gap-4 flex-1">
-                          <label className="text-sm font-semibold text-gray-900">Project</label>
-                          <label className="text-sm font-semibold text-gray-900">No. SPK</label>
-                        </div>
-                        {/* Spacer to align with delete button when more than 1 row */}
-                        {formProjects.length > 1 && <div className="w-11 flex-shrink-0" />}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-4">
-                      <div className="grid grid-cols-2 gap-4 flex-1">
-                        <input
-                          type="text"
-                          value={proj.name}
-                          onChange={(e) => handleProjectChange(idx, 'name', e.target.value)}
-                          placeholder="Input Project"
-                          className="w-full h-11 px-3.5 bg-white border border-[#D0D5DD] rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
-                        />
-                        <input
-                          type="text"
-                          value={proj.noSpk}
-                          onChange={(e) => handleProjectChange(idx, 'noSpk', e.target.value)}
-                          placeholder="Input No. SPK"
-                          className="w-full h-11 px-3.5 bg-white border border-[#D0D5DD] rounded-xl text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
-                        />
-                      </div>
-                      {/* Delete button - only shown when more than 1 row (appears on all rows including field 1) */}
-                      {formProjects.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveProjectRow(idx)}
-                          className="w-11 h-11 flex-shrink-0 flex items-center justify-center border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
-                          title="Delete project"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-1.5">
+                  No. SPK
+                </label>
+                <input
+                  type="text"
+                  value={formNoSpk}
+                  onChange={(e) => setFormNoSpk(e.target.value)}
+                  placeholder="Input No. SPK"
+                  className="w-full h-10 px-3 border border-[#D0D5DD] rounded-lg text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#00A854]"
+                />
               </div>
             </div>
 
-            {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-3 pt-3">
+            {/* Action Buttons (Cancel & Submit) - Right aligned matching screenshot */}
+            <div className="flex items-center justify-end gap-3 pt-4">
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="px-6 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                className="min-w-[105px] h-[38px] px-6 py-2 border border-[#667085] bg-white text-[#475467] hover:bg-gray-50 rounded-lg text-sm font-semibold transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#00A854] hover:bg-[#008C45] text-white rounded-lg text-sm font-medium shadow-sm transition-colors cursor-pointer"
+                className="min-w-[105px] h-[38px] px-7 py-2 bg-[#00A854] hover:bg-[#008C45] text-white rounded-lg text-sm font-semibold transition-colors shadow-sm cursor-pointer"
               >
-                Save
+                Submit
               </button>
             </div>
           </form>
         </div>
       </ModalPortal>
 
-      {/* Delete Confirmation Modal */}
-      <ModalPortal isOpen={!!deleteId} onClose={() => setDeleteId(null)}>
-        <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-center">
-          <h3 className="text-base font-bold text-gray-900">Delete Customer?</h3>
-          <p className="text-xs text-gray-500">
-            Are you sure you want to delete this customer? This action cannot be undone.
-          </p>
-          <div className="flex items-center justify-center gap-3 pt-2">
+      {/* MODAL 2: Public Key (Image 3) */}
+      <ModalPortal isOpen={showPublicKeyModal} onClose={() => setShowPublicKeyModal(false)}>
+        <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150">
+          {/* Header */}
+          <div className="flex items-start justify-between border-b border-gray-100 pb-3">
+            <div>
+              <h3 className="text-base font-bold text-gray-900">Public Key</h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                This field is for desc terms of service
+              </p>
+            </div>
             <button
-              onClick={() => setDeleteId(null)}
-              className="px-5 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+              onClick={() => setShowPublicKeyModal(false)}
+              className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer transition-colors"
             >
-              Cancel
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Public Key Display Box */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-semibold text-gray-900">
+              Public Key
+            </label>
+            <div className="relative border border-[#D0D5DD] rounded-lg p-3 bg-white">
+              <textarea
+                readOnly
+                value={generatedPublicKey}
+                rows={3}
+                className="w-full text-xs font-mono text-gray-800 bg-transparent resize-none border-none focus:outline-none pr-8 select-all leading-relaxed"
+              />
+              <button
+                onClick={() => handleCopyPublicKey(generatedPublicKey)}
+                className="absolute top-2.5 right-2.5 p-1 text-gray-400 hover:text-[#00A854] rounded transition-colors cursor-pointer"
+                title="Salin Public Key"
+              >
+                {hasCopied ? (
+                  <Check className="w-4 h-4 text-[#00A854]" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </ModalPortal>
+
+      {/* MODAL 3: Delete Confirmation */}
+      <ModalPortal isOpen={!!deleteId} onClose={() => setDeleteId(null)}>
+        <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="flex items-center gap-3 text-red-600">
+            <AlertCircle className="w-6 h-6 flex-shrink-0" />
+            <h3 className="text-base font-bold text-gray-900">Hapus Data Customer</h3>
+          </div>
+          <p className="text-sm text-gray-600">
+            Apakah Anda yakin ingin menghapus data customer ini?
+          </p>
+
+          <div className="flex items-center justify-end gap-3 pt-3">
+            <button
+              type="button"
+              onClick={() => setDeleteId(null)}
+              className="px-4 py-2 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+            >
+              Batal
             </button>
             <button
+              type="button"
               onClick={handleDeleteConfirm}
-              className="px-6 py-2.5 bg-[#F04438] hover:bg-[#D92D20] text-white rounded-lg text-sm font-medium shadow-sm transition-colors cursor-pointer"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
-              Delete
+              Hapus
             </button>
           </div>
         </div>
       </ModalPortal>
 
-      {/* Toast Alert */}
+      {/* Toast Notification */}
       {toast && (
         <Toast
           type={toast.type}

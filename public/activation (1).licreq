@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "requestId": "45a5b76011664620aa6530b0210c5ef3",
+  "createdAt": "2026-10-08T10:56:34.0393062+00:00",
+  "customerReference": "PT Astemo Bekasi Manufacture",
+  "project": "Line Monitoring",
+  "noSpk": "ABM-LM-2026-01",
+  "machinePublicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqX4GqoRjKCvod1Ej9p2P02i4b9fHAufnSAvx1yxxUk/Pj/bg1nPMYGYxz5MmS0siBWFbwf0xVyNLLVS0kAkBFm614Phactm+VLKigx1H28U5CbkH+exEsdNlG72Fl23FytZmE6b9BwBL+dkQIxkCdJV43jlMUBDfBbheCeskygIhzwUIWW/8baZ+emh3MxRhbHqWzPgjH4FcAzZ6Xiv5E88e7dnnJCG5Bwl8my6Nw7AHD+Yeev2jd399doxHbf+rrCNjRzcxTRfrqFFsIf9bPeRAeOITxHPb4P1wAdfK6YjrjjHVfnwz0mnZ0Mr1wE90SbOzOoeP7sS4o2RuJ/X/LQIDAQAB",
+  "encryptedHardware": {
+    "algorithm": "RSA-OAEP-256+AesGcmCipher",
+    "encryptedKey": "H2Yk5Hf1en4SgaRDNiiwB2SCmjynbQ4DrdPHKASi3nkaqMN7esDqcMBTBI7Vvku4flCpsBvgNFdtC6P0cLswt5J/KWyiZwOqidEo8gL9vqjyka182mXzVa5ECkiX4SLaGuAfD4igFZH5eaMjCI0LWCN9cCoHpMhuAop7hfKic3+P6HRM+3HQ4yHygxraAzWooxjkpdUG2852aHxmbiM2SdopeofT953h9eGU/ZydYASn2E2q/K1/aRjcTkZxIf9jzOmFZaI5aP3PK7YCOKJ72VQ33Ruejh0Xpx1AOc5fJomZRHiX9iDcnUt/OMpH5RqC29BUF66eTEoMu8s2OKH9hg==",
+    "nonce": "h3JtVlICgT+TSEBn",
+    "tag": "WiTdCiHiNwaTzFV0x9LDmA==",
+    "ciphertext": "JTZLdF4Y/RQH+i1i5HiWivP8brDdDmYNy5x0kVtSnkPnZ6nzwNEtVTTk5i6uWKRuceaGA3dnwTcozZAzaaoCvjMAoRyj/FxPrC1JeG/CQyUKa8O+lGmI/HEImP3sXfgERCCmW9kAvpkWd3EECdgXovmCF0bLO2tNGNP/lS3fkuL3xftwh3K7LyI8m3mSVSKLgC8iAeRez8PsfhY4xBRCUaX51t3xvjdBfUF66AiAE/AevcJ0GsWlbfJGTkm8d/e/4zito+21/hGzNIwAOIWyoQdUu+tSP+I831G/pPm+9OHkFqXGtpHMdfAjmYc23b0hWe3iNWkSPhnV1ZX6LMx6KQzYWyT22I2ipGRhiNY9p9tmexWFtNalilnf8jcg+lABYG4k9JXqoD56qg62mSUbU6J/Y1kBuBLwRSdv1qtCejKaN+h1Um7uMd2ht5NKkuZ4pGUcTLD9vyk95ESMElJRCo+DIL8tATD+j1HYgCOoHw/WBpM7D621"
+  },
+  "clientProofSignature": "QiQehto8hYmf54Rw49j7sv6QtTBgEtU3vSDEypAG9+4aWIfnRjrUt0Yfe2GipKJpkUQm8TTXgH4GUZ1EjFsCu5y0SN+ERE/kZD4fCXhf1DnsbdzMCXZVqG9Cc0buRcCw2UnmOCefdyy1fHaivBbJ0/ppTsYkwFtb9by9dv0Eil7uIoPrGSv6eeypTrdnVO9kH9Zb/D5QuRTbbA5B7MeXKv3jMi45w/iqyo8Dvjy70eOzFTHMlX/reK0LXfbBJN+J0fMx33JTaC9eqjQqZWuBSu2cYQgVZ/4Z4hP0gFOVJBjIKLWQLYZbNIi3iNCNGHPbbyjHzFnDhkHaaEtoikf3+Q=="
+}

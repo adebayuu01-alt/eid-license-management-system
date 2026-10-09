@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "requestId": "89b7201c905342ea9f8812e4312ab29f",
+  "createdAt": "2026-10-09T08:15:20.1248910+00:00",
+  "customerReference": "PT. Astemo Bekasi Manufacture",
+  "project": "Line Monitoring",
+  "noSpk": "ABM-LM-2026-01",
+  "machinePublicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyK7L...",
+  "encryptedHardware": {
+    "algorithm": "RSA-OAEP-256+AesGcmCipher",
+    "encryptedKey": "kL983Vw1...",
+    "nonce": "a9Kl10Vx",
+    "tag": "Lm49Pq==",
+    "ciphertext": "ZkPqW8912..."
+  },
+  "clientProofSignature": "Bq99K..."
+}

@@ -8,13 +8,9 @@ import {
   ChevronRight,
   LogOut,
   PanelLeftClose,
-  PanelLeft,
-  MoreVertical,
-  Cpu,
-  Building2
+  PanelLeft
 } from 'lucide-react';
-import eidLogo from '../assets/eid-logo.svg';
-import astemoBrandLogo from '../assets/astemo-brand.png';
+import eidBrandLogo from '../assets/eid-license-management-logo.png';
 
 export default function Layout({
   activeMenu,
@@ -26,8 +22,6 @@ export default function Layout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [masterDataOpen, setMasterDataOpen] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
-
-  const isSuperadmin = currentUser?.role === 'Superadmin';
 
   // Realtime clock
   useEffect(() => {
@@ -60,42 +54,43 @@ export default function Layout({
   };
 
   const { dateStr, timeStr } = formatDate(currentTime);
-
   const isMasterDataActive = activeMenu === 'master-data-customer';
 
   return (
     <div className="h-screen w-screen flex flex-col bg-[#F8F9FC] overflow-hidden">
-      {/* Top Navbar - Fixed at top, never scrolls */}
-      <header className="h-[72px] bg-white border-b border-[#E4E7EC] px-6 flex items-center justify-between flex-shrink-0 z-40">
-        <div className="flex items-center gap-6">
+      {/* Top Navbar */}
+      <header className="h-[64px] bg-white border-b border-[#E4E7EC] px-6 flex items-center justify-between flex-shrink-0 z-40">
+        <div className="flex items-center gap-5">
+          {/* EiD LICENSE MANAGEMENT Brand */}
           <div
             className="flex items-center cursor-pointer select-none"
             onClick={() => onNavigate('license-management')}
-            title="License Management"
+            title="EiD License Management"
           >
             <img
-              src={astemoBrandLogo}
-              alt="Astemo Brand Logo"
+              src={eidBrandLogo}
+              alt="EiD License Management"
               className="h-[40px] w-auto object-contain"
             />
           </div>
 
+          {/* Sidebar Toggle Button */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
             title="Toggle Sidebar"
           >
             {sidebarOpen ? (
-              <PanelLeftClose className="w-5 h-5" />
+              <PanelLeftClose className="w-5 h-5 text-[#475467]" />
             ) : (
-              <PanelLeft className="w-5 h-5" />
+              <PanelLeft className="w-5 h-5 text-[#475467]" />
             )}
           </button>
         </div>
 
-        {/* Top Right: Only Realtime Date & Time */}
+        {/* Top Right: Realtime Date & Time */}
         <div className="flex items-center select-none">
-          <div className="flex items-center gap-2.5 text-base sm:text-lg text-[#475467] font-medium">
+          <div className="flex items-center gap-2.5 text-sm sm:text-base text-[#475467] font-medium">
             <span>{dateStr}</span>
             <span className="text-gray-300">|</span>
             <span className="font-bold text-[#1E232F]">{timeStr}</span>
@@ -134,71 +129,16 @@ export default function Layout({
                   <ShieldCheck className="w-5 h-5 flex-shrink-0" />
                   {sidebarOpen && <span>License Management</span>}
                 </button>
-
-                {/* Product Key */}
-                <button
-                  onClick={() => onNavigate('product-key')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                    activeMenu === 'product-key'
-                      ? 'bg-[#EAF8F1] text-[#00A854] font-semibold'
-                      : 'text-[#475467] hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  title="Product Key"
-                >
-                  <KeyRound className="w-5 h-5 flex-shrink-0" />
-                  {sidebarOpen && <span>Product Key</span>}
-                </button>
-              </div>
-            </div>
-
-            {/* MANAGEMENT (User & Role Management) */}
-            <div>
-              {sidebarOpen && (
-                <p className="text-[11px] font-semibold tracking-wider text-gray-400 uppercase mb-2 px-2">
-                  MANAGEMENT
-                </p>
-              )}
-              <div className="space-y-1">
-                <button
-                  onClick={() => onNavigate('user-management')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                    activeMenu === 'user-management'
-                      ? 'bg-[#EAF8F1] text-[#00A854] font-semibold'
-                      : 'text-[#475467] hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  title="User Management"
-                >
-                  <Users className="w-5 h-5 flex-shrink-0" />
-                  {sidebarOpen && <span>User Management</span>}
-                </button>
-
-                <button
-                  onClick={() => onNavigate('role-management')}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                    activeMenu === 'role-management'
-                      ? 'bg-[#EAF8F1] text-[#00A854] font-semibold'
-                      : 'text-[#475467] hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                  title="Role Management"
-                >
-                  <ShieldCheck className="w-5 h-5 flex-shrink-0" />
-                  {sidebarOpen && <span>Role Management</span>}
-                </button>
               </div>
             </div>
 
             {/* DATABASE (Master Data -> Customer) */}
             <div>
-              <div className="flex items-center justify-between px-2 mb-2">
-                {sidebarOpen && (
-                  <p className="text-[11px] font-semibold tracking-wider text-gray-400 uppercase">
-                    DATABASE
-                  </p>
-                )}
-                {sidebarOpen && (
-                  <MoreVertical className="w-3.5 h-3.5 text-gray-400" />
-                )}
-              </div>
+              {sidebarOpen && (
+                <p className="text-[11px] font-semibold tracking-wider text-gray-400 uppercase mb-2 px-2">
+                  DATABASE
+                </p>
+              )}
 
               <div className="space-y-2">
                 {/* Master Data Collapsible Treeview */}
@@ -257,8 +197,21 @@ export default function Layout({
             </div>
           </div>
 
-          {/* Logout at Bottom */}
-          <div className="p-4 border-t border-[#E4E7EC]">
+          {/* Bottom Area: Request License + Logout */}
+          <div className="p-4 border-t border-[#E4E7EC] space-y-1.5">
+            <button
+              onClick={() => onNavigate('request-license')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                activeMenu === 'request-license'
+                  ? 'bg-[#EAF8F1] text-[#00A854] font-semibold'
+                  : 'text-[#475467] hover:bg-emerald-50/60 hover:text-[#00A854]'
+              }`}
+              title="Request License Portal"
+            >
+              <KeyRound className="w-5 h-5 flex-shrink-0 text-[#00A854]" />
+              {sidebarOpen && <span>Request License</span>}
+            </button>
+
             <button
               onClick={onLogout}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#FF4D4F] hover:bg-red-50 transition-colors cursor-pointer"

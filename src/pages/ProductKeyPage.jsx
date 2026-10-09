@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
-  RotateCw,
   Copy,
   Check
 } from 'lucide-react';
